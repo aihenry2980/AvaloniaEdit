@@ -20,6 +20,8 @@
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     <AssemblyOriginatorKeyFile>$(MSBuildThisFileDirectory)\avalonia.snk</AssemblyOriginatorKeyFile>
     <SignAssembly>true</SignAssembly>
+    <!-- Avoid compiling generated sources from ad-hoc artifacts output folders -->
+    <DefaultItemExcludes>$(DefaultItemExcludes);artifacts/**</DefaultItemExcludes>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(GITHUB_ACTIONS)' == 'true'">
