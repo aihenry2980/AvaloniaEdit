@@ -2,6 +2,7 @@
   <PropertyGroup>
     <LangVersion>latest</LangVersion>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <Platforms>AnyCPU;x64</Platforms>
     <AvaloniaVersion>11.0.0</AvaloniaVersion>
     <AvaloniaSampleVersion>11.3.0</AvaloniaSampleVersion>
     <TextMateSharpVersion>2.0.2</TextMateSharpVersion>
@@ -19,7 +20,7 @@
     <PackageIcon>Icon.png</PackageIcon>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     <AssemblyOriginatorKeyFile>$(MSBuildThisFileDirectory)\avalonia.snk</AssemblyOriginatorKeyFile>
-    <SignAssembly>true</SignAssembly>
+    <SignAssembly>false</SignAssembly>
     <!-- Avoid compiling generated sources from ad-hoc artifacts output folders -->
     <DefaultItemExcludes>$(DefaultItemExcludes);artifacts/**</DefaultItemExcludes>
   </PropertyGroup>
