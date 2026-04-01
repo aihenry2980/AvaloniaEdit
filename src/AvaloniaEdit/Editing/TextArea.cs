@@ -1290,9 +1290,7 @@ namespace AvaloniaEdit.Editing
                 }
 
                 RaiseTextViewVisualChanged();
-
                 RaiseCursorRectangleChanged();
-
                 RaiseSurroundingTextChanged();
             }
 

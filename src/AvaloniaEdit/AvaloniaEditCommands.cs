@@ -169,5 +169,7 @@ namespace AvaloniaEdit
         public static RoutedCommand SelectToDocumentStart { get; } = new RoutedCommand(nameof(SelectToDocumentStart));
         public static RoutedCommand MoveToDocumentEnd { get; } = new RoutedCommand(nameof(MoveToDocumentEnd));
         public static RoutedCommand SelectToDocumentEnd { get; } = new RoutedCommand(nameof(SelectToDocumentEnd));
+        public static RoutedCommand Copy { get; } = new RoutedCommand(nameof(Copy), new KeyGesture(Key.Insert, KeyModifiers.Control));
+        public static RoutedCommand Paste { get; } = new RoutedCommand(nameof(Paste), new KeyGesture(Key.Insert, KeyModifiers.Shift));
     }
 }
