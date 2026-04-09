@@ -108,15 +108,17 @@ namespace AvaloniaEdit.Editing
                     _textArea.FontSize,
                     Brushes.Black);
 
-                var preeditTextPos = new Point(Math.Max(relativeRect.X, 4), relativeRect.Y + (relativeRect.Height - formattedText.Height) * 0.5);
-                var border = new Rect(preeditTextPos.X - 3.5, relativeRect.Y, formattedText.Width + 8, relativeRect.Height);
+                var textWidth = formattedText.WidthIncludingTrailingWhitespace;
+                var startX = Math.Min(Math.Max(relativeRect.X, 4), TextView.Bounds.Width - textWidth - 4);
+                var preeditTextPos = new Point(startX, relativeRect.Y + (relativeRect.Height - formattedText.Height) * 0.5);
+                var border = new Rect(preeditTextPos.X - 3.5, relativeRect.Y, textWidth + 8, relativeRect.Height);
                 var shadow = new BoxShadows(new() { Blur = 6, Color = Color.FromUInt32(0xA0000000) });
 
                 drawingContext.DrawRectangle(new SolidColorBrush(0xFFF0F0F0), null, border, 3, 3, shadow);
                 drawingContext.DrawText(formattedText, preeditTextPos);
 
                 relativeRect = new Rect(
-                    preeditTextPos.X + formattedText.WidthIncludingTrailingWhitespace + 0.5,
+                    preeditTextPos.X + textWidth + 0.5,
                     relativeRect.Y,
                     relativeRect.Width,
                     relativeRect.Height);
