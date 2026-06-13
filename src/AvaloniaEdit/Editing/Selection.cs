@@ -269,8 +269,34 @@ namespace AvaloniaEdit.Editing
         public virtual DataTransfer CreateDataObject(TextArea textArea)
         {
             DataTransfer data = new DataTransfer();
+
+            // Ensure we use the appropriate newline sequence for the OS
             string text = TextUtilities.NormalizeNewLines(GetText(), Environment.NewLine);
-            data.Add(DataTransferItem.CreateText(text));
+
+            // Enable drag/drop to Word, Notepad++ and others
+            if (EditingCommandHandler.ConfirmDataFormat(textArea, data, DataFormat.Text))
+            {
+                var item = new DataTransferItem();
+                item.Set(DataFormat.Text, text);
+                data.Add(item);
+            }
+
+            // Enable drag/drop to SciTe:
+            // We cannot use SetText, thus we need to use typeof(string).FullName as data format.
+            // new DataObject(object) calls SetData(object), which in turn calls SetData(Type, data),
+            // which then uses Type.FullName as format.
+            // We immitate that behavior here as well:
+            ////if (EditingCommandHandler.ConfirmDataFormat(textArea, data, typeof(string).FullName))
+            ////{
+            ////    data.SetData(typeof(string).FullName, text);
+            ////}
+
+            // Also copy text in HTML format to clipboard - good for pasting text into Word
+            // or to the SharpDevelop forums.
+            ////if (EditingCommandHandler.ConfirmDataFormat(textArea, data, DataFormats.Html))
+            ////{
+            ////    HtmlClipboard.SetHtml(data, CreateHtmlFragment(new HtmlOptions(textArea.Options)));
+            ////}
             return data;
         }
     }

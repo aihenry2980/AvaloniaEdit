@@ -1,14 +1,14 @@
-﻿// Copyright (c) 2014 AlphaSierraPapa for the SharpDevelop Team
-// 
+// Copyright (c) 2014 AlphaSierraPapa for the SharpDevelop Team
+//
 // Permission is hereby granted, free of charge, to any person obtaining a copy of this
 // software and associated documentation files (the "Software"), to deal in the Software
 // without restriction, including without limitation the rights to use, copy, modify, merge,
 // publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons
 // to whom the Software is furnished to do so, subject to the following conditions:
-// 
+//
 // The above copyright notice and this permission notice shall be included in all copies or
 // substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
 // INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
 // PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE
@@ -340,68 +340,68 @@ namespace AvaloniaEdit.Utils
         }
 
         /*
-		#region Equality
-		/// <summary>
-		/// Gets whether the two ropes have the same content.
-		/// Runs in O(N + M).
-		/// </summary>
-		/// <remarks>
-		/// This method counts as a read access and may be called concurrently to other read accesses.
-		/// </remarks>
-		public bool Equals(Rope other)
-		{
-			if (other == null)
-				return false;
-			// quick detection for ropes that are clones of each other:
-			if (other.root == this.root)
-				return true;
-			if (other.Length != this.Length)
-				return false;
-			using (RopeTextReader a = new RopeTextReader(this, false)) {
-				using (RopeTextReader b = new RopeTextReader(other, false)) {
-					int charA, charB;
-					do {
-						charA = a.Read();
-						charB = b.Read();
-						if (charA != charB)
-							return false;
-					} while (charA != -1);
-					return true;
-				}
-			}
-		}
-		
-		/// <summary>
-		/// Gets whether two ropes have the same content.
-		/// Runs in O(N + M).
-		/// </summary>
-		public override bool Equals(object obj)
-		{
-			return Equals(obj as Rope);
-		}
-		
-		/// <summary>
-		/// Calculates the hash code of the rope's content.
-		/// Runs in O(N).
-		/// </summary>
-		/// <remarks>
-		/// This method counts as a read access and may be called concurrently to other read accesses.
-		/// </remarks>
-		public override int GetHashCode()
-		{
-			int hashcode = 0;
-			using (RopeTextReader reader = new RopeTextReader(this, false)) {
-				unchecked {
-					int val;
-					while ((val = reader.Read()) != -1) {
-						hashcode = hashcode * 31 + val;
-					}
-				}
-			}
-			return hashcode;
-		}
-		#endregion
-		 */
+        #region Equality
+        /// <summary>
+        /// Gets whether the two ropes have the same content.
+        /// Runs in O(N + M).
+        /// </summary>
+        /// <remarks>
+        /// This method counts as a read access and may be called concurrently to other read accesses.
+        /// </remarks>
+        public bool Equals(Rope other)
+        {
+            if (other == null)
+                return false;
+            // quick detection for ropes that are clones of each other:
+            if (other.root == this.root)
+                return true;
+            if (other.Length != this.Length)
+                return false;
+            using (RopeTextReader a = new RopeTextReader(this, false)) {
+                using (RopeTextReader b = new RopeTextReader(other, false)) {
+                    int charA, charB;
+                    do {
+                        charA = a.Read();
+                        charB = b.Read();
+                        if (charA != charB)
+                            return false;
+                    } while (charA != -1);
+                    return true;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Gets whether two ropes have the same content.
+        /// Runs in O(N + M).
+        /// </summary>
+        public override bool Equals(object obj)
+        {
+            return Equals(obj as Rope);
+        }
+
+        /// <summary>
+        /// Calculates the hash code of the rope's content.
+        /// Runs in O(N).
+        /// </summary>
+        /// <remarks>
+        /// This method counts as a read access and may be called concurrently to other read accesses.
+        /// </remarks>
+        public override int GetHashCode()
+        {
+            int hashcode = 0;
+            using (RopeTextReader reader = new RopeTextReader(this, false)) {
+                unchecked {
+                    int val;
+                    while ((val = reader.Read()) != -1) {
+                        hashcode = hashcode * 31 + val;
+                    }
+                }
+            }
+            return hashcode;
+        }
+        #endregion
+         */
 
         /// <summary>
         /// Concatenates two ropes. The input ropes are not modified.
@@ -440,7 +440,7 @@ namespace AvaloniaEdit.Utils
         }
 
         #region Caches / Changed event
-        internal struct RopeCacheEntry
+        internal readonly struct RopeCacheEntry
         {
             internal RopeNode<T> Node { get; }
             internal int NodeStartIndex { get; }
@@ -498,42 +498,42 @@ namespace AvaloniaEdit.Utils
                 Root = Root.SetElement(index, value);
                 OnChanged();
                 /* Here's a try at implementing the setter using the cached node stack (UNTESTED code!).
-				 * However I don't use the code because it's complicated and doesn't integrate correctly with change notifications.
-				 * Instead, I'll use the much easier to understand recursive solution.
-				 * Oh, and it also doesn't work correctly with function nodes.
-				ImmutableStack<RopeCacheEntry> nodeStack = FindNodeUsingCache(offset);
-				RopeCacheEntry entry = nodeStack.Peek();
-				if (!entry.node.isShared) {
-					entry.node.contents[offset - entry.nodeStartOffset] = value;
-					// missing: clear the caches except for the node stack cache (e.g. ToString() cache?)
-				} else {
-					RopeNode oldNode = entry.node;
-					RopeNode newNode = oldNode.Clone();
-					newNode.contents[offset - entry.nodeStartOffset] = value;
-					for (nodeStack = nodeStack.Pop(); !nodeStack.IsEmpty; nodeStack = nodeStack.Pop()) {
-						RopeNode parentNode = nodeStack.Peek().node;
-						RopeNode newParentNode = parentNode.CloneIfShared();
-						if (newParentNode.left == oldNode) {
-							newParentNode.left = newNode;
-						} else {
-							Debug.Assert(newParentNode.right == oldNode);
-							newParentNode.right = newNode;
-						}
-						if (parentNode == newParentNode) {
-							// we were able to change the existing node (it was not shared);
-							// there's no reason to go further upwards
-							ClearCacheOnModification();
-							return;
-						} else {
-							oldNode = parentNode;
-							newNode = newParentNode;
-						}
-					}
-					// we reached the root of the rope.
-					Debug.Assert(root == oldNode);
-					root = newNode;
-					ClearCacheOnModification();
-				}*/
+                 * However I don't use the code because it's complicated and doesn't integrate correctly with change notifications.
+                 * Instead, I'll use the much easier to understand recursive solution.
+                 * Oh, and it also doesn't work correctly with function nodes.
+                ImmutableStack<RopeCacheEntry> nodeStack = FindNodeUsingCache(offset);
+                RopeCacheEntry entry = nodeStack.Peek();
+                if (!entry.node.isShared) {
+                    entry.node.contents[offset - entry.nodeStartOffset] = value;
+                    // missing: clear the caches except for the node stack cache (e.g. ToString() cache?)
+                } else {
+                    RopeNode oldNode = entry.node;
+                    RopeNode newNode = oldNode.Clone();
+                    newNode.contents[offset - entry.nodeStartOffset] = value;
+                    for (nodeStack = nodeStack.Pop(); !nodeStack.IsEmpty; nodeStack = nodeStack.Pop()) {
+                        RopeNode parentNode = nodeStack.Peek().node;
+                        RopeNode newParentNode = parentNode.CloneIfShared();
+                        if (newParentNode.left == oldNode) {
+                            newParentNode.left = newNode;
+                        } else {
+                            Debug.Assert(newParentNode.right == oldNode);
+                            newParentNode.right = newNode;
+                        }
+                        if (parentNode == newParentNode) {
+                            // we were able to change the existing node (it was not shared);
+                            // there's no reason to go further upwards
+                            ClearCacheOnModification();
+                            return;
+                        } else {
+                            oldNode = parentNode;
+                            newNode = newParentNode;
+                        }
+                    }
+                    // we reached the root of the rope.
+                    Debug.Assert(root == oldNode);
+                    root = newNode;
+                    ClearCacheOnModification();
+                }*/
             }
         }
 
@@ -604,8 +604,6 @@ namespace AvaloniaEdit.Utils
 
         internal static void VerifyArrayWithRange(Span<T> array, int arrayIndex, int count)
         {
-            if (array.IsEmpty)
-               throw new ArgumentNullException(nameof(array));
             if (arrayIndex < 0 || arrayIndex > array.Length)
             {
                 throw new ArgumentOutOfRangeException(nameof(arrayIndex), arrayIndex, "0 <= arrayIndex <= " + array.Length.ToString(CultureInfo.InvariantCulture));
@@ -653,7 +651,7 @@ namespace AvaloniaEdit.Utils
 #if DEBUG
             return Root.GetTreeAsString();
 #else
-			return "Not available in release build.";
+            return "Not available in release build.";
 #endif
         }
         #endregion

@@ -1403,7 +1403,7 @@ namespace AvaloniaEdit.Rendering
         /// </summary>
         public event EventHandler ScrollOffsetChanged;
 
-        private void SetScrollOffset(Vector vector)
+        internal void SetScrollOffset(Vector vector)
         {
             if (!_canHorizontallyScroll)
             {
@@ -1509,7 +1509,7 @@ namespace AvaloniaEdit.Rendering
                     0, 32000,
                     new VisualLineTextParagraphProperties { defaultTextRunProperties = textRunProperties });
             }
-            
+
             if (line != null)
             {
                 _wideSpaceWidth = Math.Max(1, line.WidthIncludingTrailingWhitespace);
@@ -1969,7 +1969,7 @@ namespace AvaloniaEdit.Rendering
         /// <seealso cref="TextEditorOptions.ShowColumnRulers"/>
         /// </summary>
         public static readonly StyledProperty<IPen> ColumnRulerPenProperty =
-            AvaloniaProperty.Register<TextView, IPen>(nameof(ColumnRulerPen), CreateFrozenPen(new SolidColorBrush(Color.FromArgb(90, 128, 128, 128))));
+            AvaloniaProperty.Register<TextView, IPen>("ColumnRulerPen", CreateFrozenPen(new SolidColorBrush(Color.FromArgb(90, 128, 128, 128))));
 
         private static ImmutablePen CreateFrozenPen(IBrush brush)
         {
@@ -2091,6 +2091,10 @@ namespace AvaloniaEdit.Rendering
                 }
             }
         }
+
+        bool IScrollable.CanHorizontallyScroll => _canHorizontallyScroll;
+
+        bool IScrollable.CanVerticallyScroll => _canVerticallyScroll;
 
         bool ILogicalScrollable.IsLogicalScrollEnabled => true;
 

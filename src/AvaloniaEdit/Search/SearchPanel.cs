@@ -244,11 +244,7 @@ namespace AvaloniaEdit.Search
                 SetCurrentValue(IsReplaceModeProperty, false);
                 Reactivate();
             }));
-            CommandBindings.Add(new RoutedCommandBinding(ApplicationCommands.Replace, (sender, e) =>
-            {
-                if (_textEditor is not { IsReadOnly: true })
-                    SetCurrentValue(IsReplaceModeProperty, true);
-            }));
+            CommandBindings.Add(new RoutedCommandBinding(ApplicationCommands.Replace, (sender, e) => SetCurrentValue(IsReplaceModeProperty, !textEditor.IsReadOnly)));
             CommandBindings.Add(new RoutedCommandBinding(SearchCommands.ReplaceNext, (sender, e) => ReplaceNext(), (sender, e) => e.CanExecute = IsReplaceMode));
             CommandBindings.Add(new RoutedCommandBinding(SearchCommands.ReplaceAll, (sender, e) => ReplaceAll(), (sender, e) => e.CanExecute = IsReplaceMode));
 
@@ -616,7 +612,7 @@ namespace AvaloniaEdit.Search
             base.OnPointerMoved(e);
         }
 
-        protected override void OnGotFocus(GotFocusEventArgs e)
+        protected override void OnGotFocus(FocusChangedEventArgs e)
         {
             e.Handled = true;
 
