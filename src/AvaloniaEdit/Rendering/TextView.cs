@@ -679,7 +679,8 @@ namespace AvaloniaEdit.Rendering
                                                          Justification = "This method is meant to invalidate only a specific layer - I just haven't figured out how to do that, yet.")]
         public void InvalidateLayer(KnownLayer knownLayer)
         {
-            InvalidateMeasure();
+            if (knownLayer == KnownLayer.Text)
+                InvalidateMeasure();
         }
 
         /// <summary>
@@ -917,7 +918,7 @@ namespace AvaloniaEdit.Rendering
             RemoveInlineObjectsNow();
 
             maxWidth += AdditionalHorizontalScrollAmount;
-            maxWidth += 5.0; // Caret border when it is at the end of some line
+            maxWidth += 16.0; // Caret border when it is at the end of some line
 
             var heightTreeHeight = DocumentHeight;
             var options = Options;
@@ -933,6 +934,10 @@ namespace AvaloniaEdit.Rendering
                     // increase the extend height to allow scrolling below the document
                     extraHeightToAllowScrollBelowDocument = desiredHeight - minVisibleDocumentHeight;
                 }
+            }
+            else
+            {
+                extraHeightToAllowScrollBelowDocument = 8.0;
             }
 
             TextLayer.SetVisualLines(_visibleVisualLines);
