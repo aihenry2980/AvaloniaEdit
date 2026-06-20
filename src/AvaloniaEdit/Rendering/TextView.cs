@@ -679,8 +679,7 @@ namespace AvaloniaEdit.Rendering
                                                          Justification = "This method is meant to invalidate only a specific layer - I just haven't figured out how to do that, yet.")]
         public void InvalidateLayer(KnownLayer knownLayer)
         {
-            if (knownLayer == KnownLayer.Text)
-                InvalidateMeasure();
+            InvalidateMeasure();
         }
 
         /// <summary>
