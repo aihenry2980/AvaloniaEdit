@@ -82,7 +82,7 @@ namespace AvaloniaEdit.Rendering
             _backgroundRenderers = new ObserveAddRemoveCollection<IBackgroundRenderer>(BackgroundRenderer_Added, BackgroundRenderer_Removed);
             _currentLineHighlightRenderer = new CurrentLineHighlightRenderer(this);
             _columnRulerRenderer = new ColumnRulerRenderer(this);
-            Options = new TextEditorOptions();
+            SetCurrentValue(OptionsProperty, new TextEditorOptions());
 
             Debug.Assert(_singleCharacterElementGenerator != null); // assert that the option change created the builtin element generators
 
@@ -917,6 +917,8 @@ namespace AvaloniaEdit.Rendering
             RemoveInlineObjectsNow();
 
             maxWidth += AdditionalHorizontalScrollAmount;
+            maxWidth += 16.0;
+
             var heightTreeHeight = DocumentHeight;
             var options = Options;
             double desiredHeight = Math.Min(availableSize.Height, heightTreeHeight);
@@ -931,6 +933,10 @@ namespace AvaloniaEdit.Rendering
                     // increase the extend height to allow scrolling below the document
                     extraHeightToAllowScrollBelowDocument = desiredHeight - minVisibleDocumentHeight;
                 }
+            }
+            else
+            {
+                extraHeightToAllowScrollBelowDocument = 8.0;
             }
 
             TextLayer.SetVisualLines(_visibleVisualLines);
@@ -1967,7 +1973,7 @@ namespace AvaloniaEdit.Rendering
         /// <seealso cref="TextEditorOptions.ShowColumnRulers"/>
         /// </summary>
         public static readonly StyledProperty<IPen> ColumnRulerPenProperty =
-            AvaloniaProperty.Register<TextView, IPen>("ColumnRulerBrush", CreateFrozenPen(new SolidColorBrush(Color.FromArgb(90, 128, 128, 128))));
+            AvaloniaProperty.Register<TextView, IPen>(nameof(ColumnRulerPen), CreateFrozenPen(new SolidColorBrush(Color.FromArgb(90, 128, 128, 128))));
 
         private static ImmutablePen CreateFrozenPen(IBrush brush)
         {

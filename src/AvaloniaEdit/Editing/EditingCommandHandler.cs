@@ -26,6 +26,7 @@ using Avalonia.Input;
 using AvaloniaEdit.Utils;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
+using Avalonia.Input.Platform;
 
 namespace AvaloniaEdit.Editing
 {
@@ -421,14 +422,6 @@ namespace AvaloniaEdit.Editing
             return true;
         }
 
-        public static bool ConfirmDataFormat(TextArea textArea, DataObject dataObject, string format)
-        {
-            return true;
-            ////var e = new DataObjectSettingDataEventArgs(dataObject, format);
-            ////textArea.RaiseEvent(e);
-            ////return !e.CommandCancelled;
-        }
-
         private static void SetClipboardText(string text, Visual visual)
         {
             try
@@ -504,7 +497,7 @@ namespace AvaloniaEdit.Editing
                 string text = null;
                 try
                 {
-                    text = await TopLevel.GetTopLevel(textArea)?.Clipboard?.GetTextAsync();
+                    text = await TopLevel.GetTopLevel(textArea)?.Clipboard?.TryGetTextAsync();
                 }
                 catch (Exception)
                 {
@@ -535,11 +528,12 @@ namespace AvaloniaEdit.Editing
             }
         }
 
-        internal static string GetTextToPaste(IDataObject dataObject, TextArea textArea)
+        internal static string GetTextToPaste(IDataTransfer dataObject, TextArea textArea)
         {
-            if (dataObject.Contains(DataFormats.Text))
+            var text = dataObject.TryGetText();
+            if (!string.IsNullOrEmpty(text))
             {
-                return GetTextToPaste((string)dataObject.Get(DataFormats.Text), textArea);
+                return GetTextToPaste(text, textArea);
             }
 
             return null;
@@ -759,7 +753,7 @@ namespace AvaloniaEdit.Editing
             for (var i = 0; i < buffer.Length; ++i)
             {
                 var c = buffer[i];
-                buffer[i] = char.IsUpper(c) ? char.ToLower(c) : char.ToUpper(c);
+                buffer[i] = char.IsUpper(c) ? char.ToLower(c, CultureInfo.CurrentCulture) : char.ToUpper(c, CultureInfo.CurrentCulture);
             }
             return new string(buffer);
         }
