@@ -1,13 +1,17 @@
 <Project>
   <PropertyGroup>
-    <LangVersion>14</LangVersion>
+    <LangVersion>latest</LangVersion>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <AvaloniaVersion>11.3.18</AvaloniaVersion>
+    <AvaloniaSampleVersion>11.3.18</AvaloniaSampleVersion>
+    <TextMateSharpVersion>2.0.4</TextMateSharpVersion>
+    <VersionSuffix>beta</VersionSuffix>
 
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <IncludeSymbols>true</IncludeSymbols>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
 
-    <Version>12.0.4</Version>
+    <Version>11.4.1</Version>
     <Authors>Avalonia Team</Authors>
     <Copyright>Copyright 2017-$([System.DateTime]::Now.ToString(`yyyy`)) &#169; The AvaloniaUI Project</Copyright>
     <RepositoryUrl>https://github.com/AvaloniaUI/AvaloniaEdit/</RepositoryUrl>

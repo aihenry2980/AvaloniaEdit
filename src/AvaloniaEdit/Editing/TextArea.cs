@@ -24,7 +24,9 @@ using Avalonia.Input;
 using Avalonia.Input.TextInput;
 using Avalonia.Interactivity;
 using Avalonia.Media;
+using Avalonia.Media.TextFormatting;
 using Avalonia.Threading;
+using Avalonia.VisualTree;
 using AvaloniaEdit.Document;
 using AvaloniaEdit.Indentation;
 using AvaloniaEdit.Rendering;
@@ -45,7 +47,7 @@ namespace AvaloniaEdit.Editing
     /// </summary>
     public class TextArea : TemplatedControl, ITextEditorComponent, IRoutedCommandBindable, ILogicalScrollable
     {
-        private readonly ILogicalScrollable _logicalScrollable;
+        private ILogicalScrollable _logicalScrollable;
 
         private readonly TextAreaTextInputMethodClient _imClient = new TextAreaTextInputMethodClient();
 
@@ -159,12 +161,12 @@ namespace AvaloniaEdit.Editing
         public static readonly DirectProperty<TextArea, Vector> OffsetProperty =
             AvaloniaProperty.RegisterDirect<TextArea, Vector>(
                 nameof(IScrollable.Offset),
-                static o => (o as IScrollable).Offset,
-                static (o, v) => (o as IScrollable).Offset = v);
+                o => (o as IScrollable).Offset,
+                (o, v) => (o as IScrollable).Offset = v);
 
         #region InputHandler management
         /// <summary>
-        /// Preedit Text
+        /// Gets the current IME pre-edit text.
         /// </summary>
         public string PreeditText { get; private set; }
 
@@ -174,6 +176,7 @@ namespace AvaloniaEdit.Editing
         /// <remarks><inheritdoc cref="ITextAreaInputHandler"/></remarks>
         public TextAreaDefaultInputHandler DefaultInputHandler { get; }
 
+        private ITextAreaInputHandler _activeInputHandler;
         private bool _isChangingInputHandler;
 
         /// <summary>
@@ -183,15 +186,14 @@ namespace AvaloniaEdit.Editing
         /// <remarks><inheritdoc cref="ITextAreaInputHandler"/></remarks>
         public ITextAreaInputHandler ActiveInputHandler
         {
-            get;
+            get => _activeInputHandler;
             set
             {
                 if (value != null && value.TextArea != this)
-                    throw new ArgumentException(
-                        "The input handler was created for a different text area than this one.");
+                    throw new ArgumentException("The input handler was created for a different text area than this one.");
                 if (_isChangingInputHandler)
                     throw new InvalidOperationException("Cannot set ActiveInputHandler recursively");
-                if (field != value)
+                if (_activeInputHandler != value)
                 {
                     _isChangingInputHandler = true;
                     try
@@ -200,15 +202,14 @@ namespace AvaloniaEdit.Editing
                         PopStackedInputHandler(StackedInputHandlers.LastOrDefault());
                         Debug.Assert(StackedInputHandlers.IsEmpty);
 
-                        field?.Detach();
-                        field = value;
+                        _activeInputHandler?.Detach();
+                        _activeInputHandler = value;
                         value?.Attach();
                     }
                     finally
                     {
                         _isChangingInputHandler = false;
                     }
-
                     ActiveInputHandlerChanged?.Invoke(this, EventArgs.Empty);
                 }
             }
@@ -731,14 +732,16 @@ namespace AvaloniaEdit.Editing
             }
         }
 
+        private IReadOnlySectionProvider _readOnlySectionProvider = NoReadOnlySections.Instance;
+
         /// <summary>
         /// Gets/Sets an object that provides read-only sections for the text area.
         /// </summary>
         public IReadOnlySectionProvider ReadOnlySectionProvider
         {
-            get;
-            set => field = value ?? throw new ArgumentNullException(nameof(value));
-        } = NoReadOnlySections.Instance;
+            get => _readOnlySectionProvider;
+            set => _readOnlySectionProvider = value ?? throw new ArgumentNullException(nameof(value));
+        }
 
         /// <summary>
         /// The <see cref="RightClickMovesCaret"/> property.
@@ -781,7 +784,7 @@ namespace AvaloniaEdit.Editing
             Focus();
         }
 
-        protected override void OnGotFocus(FocusChangedEventArgs e)
+        protected override void OnGotFocus(GotFocusEventArgs e)
         {
             base.OnGotFocus(e);
 
@@ -790,7 +793,7 @@ namespace AvaloniaEdit.Editing
             _imClient.SetTextArea(this);
         }
 
-        protected override void OnLostFocus(FocusChangedEventArgs e)
+        protected override void OnLostFocus(RoutedEventArgs e)
         {
             base.OnLostFocus(e);
 
@@ -1157,15 +1160,6 @@ namespace AvaloniaEdit.Editing
 
         Size IScrollable.Viewport => _logicalScrollable?.Viewport ?? default(Size);
 
-        bool IScrollable.CanHorizontallyScroll
-        {
-            get => _logicalScrollable?.CanHorizontallyScroll ?? default(bool);
-        }
-
-        bool IScrollable.CanVerticallyScroll
-        {
-            get => _logicalScrollable?.CanVerticallyScroll ?? default(bool);
-        }
         bool ILogicalScrollable.CanHorizontallyScroll
         {
             get => _logicalScrollable?.CanHorizontallyScroll ?? default(bool);
@@ -1272,7 +1266,7 @@ namespace AvaloniaEdit.Editing
                 set
                 {
                     if (_textArea == null) return;
-                    var selection = _textArea.Selection;
+                    var selection =  _textArea.Selection;
                     if (selection.StartPosition.Line == 0) return;
 
                     _textArea.Selection = selection.StartSelectionOrSetEndpoint(
@@ -1296,7 +1290,9 @@ namespace AvaloniaEdit.Editing
                 }
 
                 RaiseTextViewVisualChanged();
+
                 RaiseCursorRectangleChanged();
+
                 RaiseSurroundingTextChanged();
             }
 
