@@ -127,6 +127,10 @@ namespace AvaloniaEdit.Rendering
 				throw new ArgumentNullException("textView");
 			if (segment == null)
 				throw new ArgumentNullException("segment");
+
+            if (!textView.VisualLinesValid)
+                return Enumerable.Empty<Rect>();
+
 			return GetRectsForSegmentImpl(textView, segment, extendToFullWidthAtLineEnd);
 		}
 
