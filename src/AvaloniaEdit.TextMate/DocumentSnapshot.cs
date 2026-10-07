@@ -11,6 +11,7 @@ namespace AvaloniaEdit.TextMate
         private ITextSource _textSource;
         private readonly object _lock = new object();
         private int _lineCount;
+        private static readonly char[] s_lineTerminators = { '\r', '\n' };
 
         public int LineCount
         {
@@ -131,7 +132,9 @@ namespace AvaloniaEdit.TextMate
             {
                 _lineCount = _document.Lines.Count;
 
-                if (e?.OffsetChangeMap != null && _lineRanges != null && _lineCount == _lineRanges.Length)
+                if (e?.OffsetChangeMap != null && _lineRanges != null && _lineCount == _lineRanges.Length &&
+                    e.RemovedText.IndexOfAny(s_lineTerminators, 0, e.RemovalLength) < 0 &&
+                    e.InsertedText.IndexOfAny(s_lineTerminators, 0, e.InsertionLength) < 0)
                 {
                     // it's a single-line change
                     // update the offsets usign the OffsetChangeMap
@@ -171,7 +174,7 @@ namespace AvaloniaEdit.TextMate
             }
 
             int currentLineIndex = (e != null) ?
-                _document.GetLineByOffset(e.Offset).LineNumber - 1 : 0;
+                Math.Max(0, _document.GetLineByOffset(e.Offset).LineNumber - 2) : 0;
             var currentLine = _document.GetLineByNumber(currentLineIndex + 1);
 
             while (currentLine != null)

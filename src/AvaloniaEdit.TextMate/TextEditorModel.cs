@@ -31,7 +31,6 @@ namespace AvaloniaEdit.TextMate
             for (int i = 0; i < _document.LineCount; i++)
                 AddLine(i);
 
-            _document.Changing += DocumentOnChanging;
             _document.Changed += DocumentOnChanged;
             _document.UpdateFinished += DocumentOnUpdateFinished;
             _textView.ScrollOffsetChanged += TextView_ScrollOffsetChanged;
@@ -48,7 +47,6 @@ namespace AvaloniaEdit.TextMate
             // public method guards) see this write with proper memory ordering.
             Volatile.Write(ref _isDisposed, true);
 
-            _document.Changing -= DocumentOnChanging;
             _document.Changed -= DocumentOnChanged;
             _document.UpdateFinished -= DocumentOnUpdateFinished;
             _textView.ScrollOffsetChanged -= TextView_ScrollOffsetChanged;
@@ -99,31 +97,6 @@ namespace AvaloniaEdit.TextMate
             TokenizeViewPort();
         }
 
-        private void DocumentOnChanging(object sender, DocumentChangeEventArgs e)
-        {
-            if (Volatile.Read(ref _isDisposed))
-                return;
-
-            try
-            {
-                if (e.RemovalLength > 0)
-                {
-                    var startLine = _document.GetLineByOffset(e.Offset).LineNumber - 1;
-                    var endLine = _document.GetLineByOffset(e.Offset + e.RemovalLength).LineNumber - 1;
-                    for (int i = endLine; i > startLine; i--)
-                    {
-                        RemoveLine(i);
-                    }
-
-                    _documentSnapshot.RemoveLines(startLine, endLine);
-                }
-            }
-            catch (Exception ex)
-            {
-                _exceptionHandler?.Invoke(ex);
-            }
-        }
-
         private void DocumentOnChanged(object sender, DocumentChangeEventArgs e)
         {
             if (Volatile.Read(ref _isDisposed))
@@ -132,15 +105,19 @@ namespace AvaloniaEdit.TextMate
             try
             {
                 int startLine = _document.GetLineByOffset(e.Offset).LineNumber - 1;
-                int endLine = startLine;
-                if (e.InsertionLength > 0)
+                int endLine = _document.GetLineByOffset(e.Offset + e.InsertionLength).LineNumber - 1;
+                // Keep the old snapshot readable until the edit is complete. Counting the
+                // actual line delta also handles edits that split or join a CRLF terminator.
+                int lineDelta = _document.LineCount - _documentSnapshot.LineCount;
+                if (lineDelta < 0)
                 {
-                    endLine = _document.GetLineByOffset(e.Offset + e.InsertionLength).LineNumber - 1;
-
-                    for (int i = startLine; i < endLine; i++)
-                    {
+                    for (int i = startLine - lineDelta; i > startLine; i--)
+                        RemoveLine(i);
+                }
+                else if (lineDelta > 0)
+                {
+                    for (int i = startLine; i < startLine + lineDelta; i++)
                         AddLine(i);
-                    }
                 }
 
                 _documentSnapshot.Update(e);
